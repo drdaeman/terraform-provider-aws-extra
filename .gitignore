@@ -1,0 +1,4 @@
+.idea/
+.shadowenv.d
+/dist
+terraform-provider-aws-extras
