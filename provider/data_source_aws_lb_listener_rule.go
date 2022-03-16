@@ -46,6 +46,11 @@ func (r dataSourceListenerRulesType) GetSchema(_ context.Context) (tfsdk.Schema,
 							"target_group_arn": types.StringType,
 							"weight":           types.NumberType,
 						}}},
+						"fixed_response_config": types.ObjectType{AttrTypes: map[string]attr.Type{
+							"status_code":  types.StringType,
+							"message_body": types.StringType,
+							"content_type": types.StringType,
+						}},
 						"target_group_arn": types.StringType,
 					}}},
 				}}},
@@ -90,11 +95,18 @@ type actionForwardConfig struct {
 	Weight         int    `tfsdk:"weight"`
 }
 
+type actionFixedResponseConfig struct {
+	StatusCode  string `tfsdk:"status_code"`
+	MessageBody string `tfsdk:"message_body"`
+	ContentType string `tfsdk:"content_type"`
+}
+
 type listenerRuleActions struct {
-	Type           string                `tfsdk:"type"`
-	Order          int                   `tfsdk:"order"`
-	ForwardConfig  []actionForwardConfig `tfsdk:"forward_config"`
-	TargetGroupArn string                `tfsdk:"target_group_arn"`
+	Type                string                     `tfsdk:"type"`
+	Order               int                        `tfsdk:"order"`
+	ForwardConfig       []actionForwardConfig      `tfsdk:"forward_config"`
+	FixedResponseConfig *actionFixedResponseConfig `tfsdk:"fixed_response_config"`
+	TargetGroupArn      *string                    `tfsdk:"target_group_arn"`
 }
 
 // NewDataSource creates new data source instance
@@ -195,11 +207,22 @@ func (r dataSourceListenerRules) Read(ctx context.Context, req tfsdk.ReadDataSou
 					})
 				}
 			}
+
+			var fixedResponseConfig *actionFixedResponseConfig
+			if action.FixedResponseConfig != nil {
+				fixedResponseConfig = &actionFixedResponseConfig{
+					StatusCode:  *action.FixedResponseConfig.StatusCode,
+					MessageBody: *action.FixedResponseConfig.MessageBody,
+					ContentType: *action.FixedResponseConfig.ContentType,
+				}
+			}
+
 			actions = append(actions, listenerRuleActions{
-				Type:           string(action.Type),
-				Order:          int(*action.Order),
-				ForwardConfig:  forwardConfig,
-				TargetGroupArn: *action.TargetGroupArn,
+				Type:                string(action.Type),
+				Order:               int(*action.Order),
+				ForwardConfig:       forwardConfig,
+				FixedResponseConfig: fixedResponseConfig,
+				TargetGroupArn:      action.TargetGroupArn,
 			})
 		}
 
