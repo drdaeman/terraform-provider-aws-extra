@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -132,6 +133,7 @@ func (r dataSourceListenerRules) Read(ctx context.Context, req tfsdk.ReadDataSou
 	elb := elasticloadbalancingv2.New(elasticloadbalancingv2.Options{
 		Credentials: r.p.credentials,
 		Region:      r.p.region,
+		RetryMode:   aws.RetryModeAdaptive,
 	})
 	res, err := elb.DescribeRules(ctx, &elasticloadbalancingv2.DescribeRulesInput{
 		ListenerArn: &cfg.ListenerArn.Value,
